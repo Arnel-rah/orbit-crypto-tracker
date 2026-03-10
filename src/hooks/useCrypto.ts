@@ -1,17 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
-import { Crypto } from "../api/types";
+import type { Crypto } from "../api/types";
+import { fetchCryptos } from "../api/cryptoApi";
 
 export const useCrypto = () => {
   const [cryptos, setCryptos] = useState<Crypto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const refreshData = useCallback(async () => {
     try {
-      const response = await fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd");
-      const data = await response.json();
+      setError(null);
+      const data = await fetchCryptos();
       setCryptos(data);
-    } catch (error) {
-      console.error("Fetch error", error);
+    } catch (err) {
+      console.error("Fetch error", err);
+      setError("Impossible de récupérer les données.");
     } finally {
       setLoading(false);
     }
@@ -23,5 +26,5 @@ export const useCrypto = () => {
     return () => clearInterval(interval);
   }, [refreshData]);
 
-  return { cryptos, loading, refreshData };
+  return { cryptos, loading, error, refreshData };
 };
